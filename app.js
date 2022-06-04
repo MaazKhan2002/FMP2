@@ -1,70 +1,81 @@
-window.addEventListener('scroll', function(){
-    const header = document.querySelector('header');
-    header.classList.toggle("sticky", window.scrollY > 0)
-});
-
-function toggleMenu(){
-   const menuToggle = document.querySelector('.menuToggle');
-   const navigation = document.querySelector('.navigation');
-   menuToggle.classList.toggle('active');
-   navigation.classList.toggle('active');
-}
-
-
-
 const firebaseConfig = {
-    apiKey: "AIzaSyBTwaqkA_Umj70wXP73tUhoorqX8IWmTQE",
-    authDomain: "fmp-jawan-pakistan.firebaseapp.com",
-    databaseURL: "https://fmp-jawan-pakistan-default-rtdb.firebaseio.com",
-    projectId: "fmp-jawan-pakistan",
-    storageBucket: "fmp-jawan-pakistan.appspot.com",
-    messagingSenderId: "351777592394",
-    appId: "1:351777592394:web:2af9fc5e1dedd87d95c2b3"
+  apiKey: "AIzaSyD3OMCfRawUdBpjJ4W2gaa6OE0q_7UQzVI",
+  authDomain: "todo-app-8aa94.firebaseapp.com",
+  projectId: "todo-app-8aa94",
+  storageBucket: "todo-app-8aa94.appspot.com",
+  messagingSenderId: "191476333483",
+  appId: "1:191476333483:web:0c79984ab76c86277e70ee",
+  measurementId: "G-PDJK0XCQ75"
 };
-firebase.initializeApp(firebaseConfig);
 
-var contactFormDB = firebase.database().ref('contactForm');
-
-document.getElementById('contactForm').addEventListener('submit', submitForm);
-
-function submitForm(e){
-    e.preventDefault();
-
-    var name = getElementVal("name");
-    var emailid = getElementVal("emailid");
-    var msgContent = getElementVal("msgContent");
-
-    saveMessages(name, emailid, msgContent);
-
-    document.querySelector('.alert').style.display = 'block';
-
-    setTimeout(() =>{
-        document.querySelector('.alert').style.display = 'none';
-    }, 3000);
+// Initialize Firebase
+const app = firebase.initializeApp(firebaseConfig);
 
 
-    document.getElementById('contactForm').reset();
+
+
+var list = document.getElementById("list");
+
+firebase.database().ref('todos').on('child_added', function (data) {
+  var li = document.createElement("li");
+  var liText = document.createTextNode(data.val().value);
+  li.appendChild(liText);
+
+
+  var delBtn = document.createElement("button");
+  var delText = document.createTextNode("DELETE");
+  delBtn.setAttribute("class", "btn");
+  delBtn.setAttribute('id',data.val().key)
+  delBtn.setAttribute("onclick", "delItem(this)")
+  delBtn.appendChild(delText);
+
+
+  var editBtn = document.createElement("button");
+  var editText = document.createTextNode("EDIT");
+  editBtn.setAttribute("class", "btn");
+  editBtn.setAttribute('id',data.val().key)
+  editBtn.setAttribute("onclick", "editItem(this)");
+  editBtn.appendChild(editText);
+
+
+  li.appendChild(delBtn);
+  li.appendChild(editBtn);
+
+  list.appendChild(li);
+
+})
+
+function add() {
+  var todo_item = document.getElementById("todo-item");
+  var database = firebase.database().ref('todos');
+  var key = database.push().key;
+  var todo = {
+    value: todo_item.value,
+    key: key
+  }
+  database.child(key).set(todo)
+  todo_item.value = "";
 }
 
 
-const saveMessages = (name, emailid, msgContent) =>{
-    var newContactForm = contactFormDB.push();
-
-    newContactForm.set({
-        name : name,
-        emailid : emailid,
-        msgContent : msgContent,
-    })
-};
-
-
-
-const getElementVal = (id) =>{
-    return document.getElementById(id).value;
+function delItem(e) {
+  firebase.database().ref('todos').child(e.id).remove()
+  e.parentNode.remove();
 }
 
+function editItem(e) {
+  console.log(e.id)
+  var val = prompt("Edit Your Value ", e.parentNode.firstChild.nodeValue);
+  var editTodo = {
+    value : val,
+    key : e.id
+  }
+  firebase.database().ref('todos').child(e.id).set(editTodo)
+  e.parentNode.firstChild.nodeValue = val;
+}
 
-
-
+function delAll() {
+  list.innerHTML = ""
+}
 
 
